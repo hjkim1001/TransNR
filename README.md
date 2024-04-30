@@ -1,5 +1,4 @@
 # Transfer Learning under Large-Scale Low-Rank Regression Models
-R codes for "Transfer learning under large-scale low-rank regression models". 
 
 ## Directory
 - [Functions](https://github.com/hjkim1001/TransNR/tree/main/Function): includes functions computing transfer learning algorithms and generating synthetic data used in Simulation Study section.
