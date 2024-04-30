@@ -9,7 +9,7 @@ source(paste0(path,"Functions_rankestimation_simul.R")) # load r function
 # n=n0, r=rank of B
 # corx: [Sigma_x]^{|i-j|}=corx^{|i-j|}
 # cory: [Sigma_epsilon]^{|i-j|}=Sigma_epsilon^{|i-j|}
-targestset <- generator_target_rankestimationsimul(rep=100,n=120,p=80,q=20,r=7, corx=0.5,cory=0)
+targestset <- generator_target_normal(rep=100,n=120,p=80,q=20,r=7, corx=0.5,cory=0)
 
 
 
