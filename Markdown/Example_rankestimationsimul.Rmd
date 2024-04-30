@@ -1,0 +1,87 @@
+---
+title: "Rank estimation 시뮬레이션 예제"
+output: html_document
+date: "2024-03-25"
+---
+
+Markdown에 사용된 R code와 code에 대한 설명은 CodeExample/Example_rankestimationsimul.R 파일에서 확인하실 수 있습니다. 이 예제에서는 Simulation model in Section 3.4 with n0=120, p=80, q=20, r=7, h=10를 고려합니다.
+
+### 함수 불러오기
+
+```{r}
+path <- "C:/Users/USER/Desktop/Transferlearning/Function/"
+source(paste0(path,"Functions_rankestimation_simul.R")) # load r function
+```
+
+### 데이터 만들기
+#### Target data의 200개의 replicates 만들기
+
+```{r}
+targestset <- generator_target_rankestimationsimul(rep=100,n=120,p=80,q=20,r=7, corx=0.5,cory=0)
+```
+
+#### Source data 만들기
+
+```{r}
+sources <- generator_source_rankestimationsimul(rep=200, n=300,p=80,q=20,ranksource =5,B=targestset$B,
+                                               corx=0.5,cory=0,
+                                               h=10,numsource=1)
+```
+
+#### 처음 다섯개의 replicates에 대한 결과 얻기
+
+```{r}
+library(doParallel)
+cl <- makeCluster(3)
+registerDoParallel(cl)
+
+
+lamseq_w <-  c(0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.6, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5, 3, 5, 7,
+               10, 12, 15,18,20,25, 30, 50)
+lamseq_delta <- c(lamseq_w,  100, 200, 500, 1000, 2000, 5000, 10000,20000)
+
+Repfit_TransNR_BIC(Ylist=targestset$Ylist,Xlist=targestset$Xlist,
+                   auxYlist_list = sources$auxYlist_list, auxXlist_list=sources$auxXlist_list,
+                   lamseq_w=lamseq_w, lamseq_delta=lamseq_delta, numsim=5,
+                   maxiter_inital=300, maxiter_biascorrection=300,
+                   tol_inital=1e-04, tol_biascorrection=1e-04) -> res_transNR
+
+Repfit_TransSCAD_BIC(Ylist=targestset$Ylist, Xlist=targestset$Xlist,
+                     auxYlist_list=sources$auxYlist_list, auxXlist_list=sources$auxXlist_list, 
+                     lamseq_w=lamseq_w, lamseq_delta=lamseq_delta, 
+                     numsim=5, maxiter_inital = 300, maxiter_biascorrection = 300, 
+                     tol_inital = 1e-04, tol_biascorrection = 1e-04) -> res_transSCAD
+```
+
+### 결과 요약
+#### PCR
+##### Trans- SCAD, Trans-NR
+
+```{r}
+rankvec_transSCAD <- unlist(lapply(res_transSCAD, function(x){ x$optrank_BIC }))
+rankvec_transNR <- unlist(lapply(res_transNR, function(x){ x$optrank_BIC }))
+c( sum(rankvec_transSCAD==7), sum(rankvec_transNR==7 ) )/5 
+```
+
+
+#### rank 
+##### 첫번째 행: Trans-SCAD의 랭크의 평균과 표준편차 
+##### 두번째 행: Trans-NR의 랭크의 평균과 표준편차 
+
+```{r}
+round( rbind(c( mean(rankvec_transSCAD), sd(rankvec_transSCAD)),
+              c(  mean(rankvec_transNR), sd(rankvec_transNR)) ), 2)
+```
+
+#### Estimation error
+##### 첫번째 행: Trans-SCAD의 EE의 평균과 표준편차 
+##### 두번째 행: Trans-NR의 EE의 평균과 표준편차 
+
+```{r}
+Errorvec_transSCAD <- unlist(lapply(res_transSCAD, function(x){ sqrt( mean( (x$B[-1,]- targestset$B)^2 )) }))
+Errorvec_transNR <- unlist(lapply(res_transNR, function(x){ sqrt( mean( (x$B[-1,]- targestset$B)^2 )) }))
+
+round( rbind(c( mean(Errorvec_transSCAD), sd(Errorvec_transSCAD)),
+              c(  mean(Errorvec_transNR), sd(Errorvec_transNR)) ), 3)
+
+```

@@ -1,0 +1,42 @@
+---
+title: "Structure of CCLE data"
+output: html_document
+date: "2024-03-24"
+---
+
+### 데이터 구조
+#### CCLEdataset 객체의 구조
+- Ytarget: 28 by 8 drug response matrix for NSCLC cell lines
+- Xtarget: 28 by 100 gene expression matrix for NSCLC cell lines
+- auxYlist: list containing source response matrix (길이=3)
+- auxYlist: list containing source gene expression matrix (길이=3)
+
+#### CCLEdataset_trainingtest 객체의 구조
+* 길이: 100
+* CCLEdaset_trainingtest[[i]]의 구조:
+  * CCLEdaset_trainingtest[[i]]$Ytraining: i번째 반복에서 Y의 트레이닝 데이터
+  * CCLEdaset_trainingtest[[i]]$Xtraining: i번째 반복에서 X의 트레이닝 데이터
+  
+  * CCLEdaset_trainingtest[[i]]$Ytest: i번째 반복에서 Y의 테스트 데이터
+  * CCLEdaset_trainingtest[[i]]$Xtest: i번째 반복에서 X의 테스트 데이터
+  
+#### 데이터 읽기  
+```{r}
+path <- "C:/Users/USER/Desktop/Transferlearning"
+dataname <- "CCLEdataset.RDATA"
+load(paste(path,dataname,sep="/"))
+
+path <- "C:/Users/USER/Desktop/Transferlearning"
+dataname <- "CCLEdataset_trainingtest.RDATA"
+load(paste(path,dataname,sep="/"))
+```
+
+
+#### 패키지 설치
+```{r, eval=FALSE}
+install.packages('RSpectra')
+install.packages('corpcor')
+install.packages('foreach')
+install.packages('doParallel')
+install.packages('splitTools')
+```
