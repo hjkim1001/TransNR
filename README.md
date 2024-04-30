@@ -1,4 +1,4 @@
-# TransNR
+# Transfer Learning under Large-Scale Low-Rank Regression Models
 R codes for "Transfer learning under large-scale low-rank regression models". 
 
 ## Directory
