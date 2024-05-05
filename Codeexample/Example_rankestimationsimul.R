@@ -5,7 +5,7 @@ source(paste0(path,"Functions_rankestimation_simul.R")) # load r function
 
 ##### Simulation model in Section 3.4 with n0=120, p=80, q=50, r=8, h=10
 
-### Simulating 200 target data
+### Simulating target data
 # rep: the number of replicates
 # n=n0, r=rank of B
 # corx: [Sigma_x]^{|i-j|}=corx^{|i-j|}
