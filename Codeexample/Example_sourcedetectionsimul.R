@@ -86,3 +86,21 @@ Summary_ft_detection(testrep1to3, numinf=3) #numinf: the number of informative s
 
 # Summary of estimation results
 Summary_ft_est(testrep1to3)
+
+########################### Hetergoeneous design setting ###########################################
+# ranks of contrasts, indexes of informative sources are randomly generated.
+tgarget_n050p30r5q20 <- generator_target_simulsourcedetection(rep=100, n=50, p=30, q=20, r= 5, corx=0.5,cory=0)
+Sourceset_h5 <- generator_source_simulsourcedetection_het(rep=100, nvec=rep(50,5),hvec = c(25, 5, 5, 25, 5), 
+                                                           p=30,q=20,ranksourcevec=c(11,6,9,3,4),
+                                                           B=tgarget_n050p30r5q20$B,cory=0,numsource=5)
+testrep1to3_het <- rep_forsimul(Ylist=tgarget_n050p30r5q20$Ylist,
+                            Xlist=tgarget_n050p30r5q20$Xlist,
+                            auxYlist_list=Sourceset_h5$auxYlist_list,
+                            auxXlist_list=Sourceset_h5$auxXlist_list, repstart=1, repend=3, 
+                            Btrue=tgarget_n050p30r5q20$B)
+
+# Summary of source detection results
+## truesupport: informative set
+Summary_ft_detection_het(testrep1to3_het, truesupport=c(2,3,5))
+# Summary of estimation results
+Summary_ft_est(testrep1to3_het)
