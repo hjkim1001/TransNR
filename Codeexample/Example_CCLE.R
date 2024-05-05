@@ -17,8 +17,8 @@ load(paste(path,dataname,sep="/"))
 ########### Common parameters ###################################################################
 # Y: response matrix in the target data
 # X: matrix of covariates in the target data
-# B: A in algorithm in Section S2.1 (if it is set as NULL, null matrix is used as initial value)
-# L: C in algorithm in Section S2.1 (if it is set as NULL, null matrix is used as initial value)
+# B: A in algorithm in Section S2.1 (if it is set as NULL, null matrix will be used as initial value)
+# L: C in algorithm in Section S2.1 (if it is set as NULL, null matrix will be used as initial value)
 # eta: rho in algorithm in Section S2.1 (recommend =1)
 # tol: tolerance error (default=1e-04)
 # maxiter: the number of maximum of iterations (recommend maxiter=100)
