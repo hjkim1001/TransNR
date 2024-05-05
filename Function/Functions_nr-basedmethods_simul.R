@@ -847,3 +847,108 @@ generator_source_simulsourcedetection <-  function(rep, n,p,q, h,numsource,
   
 }
 
+
+
+
+############################# Heoterogeneous design #########################################
+
+
+generator_source_simulsourcedetection_het <- function(rep, nvec, p, q, hvec, numsource, ranksourcevec, B,
+                                                      cory=0){
+   Sigma_e <- matrix(0, q, q)
+    for (i1 in 1:q) {
+        for (i2 in 1:q) {
+            Sigma_e[i1, i2] <- cory^{
+                abs(i1 - i2)
+            }
+        }
+    }
+    Sigmaxlist <- list()
+
+    for(ss in 1:numsource){
+        Sigma_x <- matrix(0, p, p)
+        for (i1 in 1:p) {
+          for (i2 in 1:p) {
+            Sigma_x[i1, i2] <- (ss/(numsource+2))^{abs(i1 - i2) }
+          }
+        }
+        Sigmaxlist[[ss]] <- Sigma_x
+    }
+    set.seed(100)
+    auxYlist_list <- auxXlist_list <- list()
+    Delta_list <- list()
+    for (kk in 1:numsource) {
+        A <- runif(p * q, -0.5, 0.5)
+        A <- matrix(A, p, q)
+        svd_B <- svd(A)
+        dd1 <- rep(0, min(p, q) - ranksourcevec[kk])
+        dd2 <- hvec[kk]/sum(1:ranksourcevec[kk]) * (1:ranksourcevec[kk])
+        dd <- c(rev(dd2), dd1)
+        Delta_list[[kk]] <- svd_B$u %*% diag(dd) %*% t(svd_B$v)
+    }
+    for(sim in 1:rep){
+        auxYlist_sim <- list()
+        auxXlist_sim <- list()
+        for (k in 1:numsource) {
+            E <- MASS::mvrnorm(n = nvec[k], mu = rep(0, q), Sigma = Sigma_e)
+            X <- MASS::mvrnorm(n = nvec[k], mu = rep(0, p), Sigma = Sigmaxlist[[k]])
+            Y <- X %*% (B + Delta_list[[k]]) + E
+            auxYlist_sim[[k]] <- Y
+            auxXlist_sim[[k]] <- X
+        }
+        auxYlist_list[[sim]] <- auxYlist_sim
+        auxXlist_list[[sim]] <- auxXlist_sim
+    }
+    return(list(Delta_list = Delta_list, auxYlist_list = auxYlist_list,
+        auxXlist_list = auxXlist_list, numsource = numsource,
+        d = dd))
+
+}
+
+
+
+Summary_ft_detection_het <- function (results, truesupport) {
+  len_res <- length(results)
+  Num_cor <- list()
+  #truesupport = 1:numinf
+  for (aaa in 1:len_res) {
+    detect_aaa_forward <- results[[aaa]]$dectected_sources_foward
+    detect_aaa_screening <- results[[aaa]]$detected_sources_screening
+    Num_cor_aaa <- NULL
+    if (length(detect_aaa_forward) == length(truesupport)) {
+      Num_cor_aaa[1] <- ifelse(all(detect_aaa_forward ==
+                                     truesupport), TRUE, FALSE)
+    }
+    else {
+      Num_cor_aaa[1] <- FALSE
+    }
+    if (length(detect_aaa_screening) == length(truesupport)) {
+      Num_cor_aaa[2] <- ifelse(all(detect_aaa_screening ==
+                                     truesupport), TRUE, FALSE)
+    }
+    else {
+      Num_cor_aaa[2] <- FALSE
+    }
+    Num_cor[[aaa]] <- Num_cor_aaa
+  }
+  mean_pci = round(apply(do.call("rbind", Num_cor), 2, mean),
+                   3)
+  mean_card = c(mean(unlist(lapply(results, function(x) {
+    length(x$dectected_sources_foward)
+  }))), mean(unlist(lapply(results, function(x) {
+    length(x$detected_sources_screening)
+  }))))
+  mean_pci = paste0(mean_pci * 100, "%")
+  sd_card = c(sd(unlist(lapply(results, function(x) {
+    length(x$dectected_sources_foward)
+  }))), sd(unlist(lapply(results, function(x) {
+    length(x$detected_sources_screening)
+  }))))
+  sd_card = round(sd_card, 3)
+  sd_card = paste0("(", sd_card, ")")
+  mean_sd_card <- paste0(mean_card, sd_card)
+  res <- c(mean_pci[1], mean_sd_card[1], mean_pci[2], mean_sd_card[2])
+  names(res) <- c("PCI:FSD", "Card:FSD", "PCI:MSD", "Card:MSD")
+  res
+}
+
