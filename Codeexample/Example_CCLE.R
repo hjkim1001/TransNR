@@ -4,6 +4,7 @@ source(paste0(path,"Functions_MSDtrans.R")) # load r function
 source(paste0(path,"Functions_FSDtrans.R")) # load r function
 source(paste0(path,"Functions_transSCAD.R")) # load r function
 
+
 # Load data
 path <- "C:/Users/USER/Desktop/Transferlearning/data"
 dataname <- "CCLEdataset.RDATA"
@@ -74,13 +75,13 @@ lam_delta <- c(lamseq_w,3)
 # lamseq_w: candidates of lambda_W in the step 1 of Algorithm 1 in the main paper
 # lamseq_delta: candidates of lambda_W in the step 1 of Algorithm 1 in the main paper
 cv.twostep(Y=CCLEdataset_trainingtest[[1]]$Ytraining, 
-                          X=CCLEdataset_trainingtest[[1]]$Xtraining, 
-                          B=NULL, L=NULL,eta=1,
-                          lamseq_w = lamseq_w,
-                          lamseq_delta=lam_delta,
-                          tol=1e-04,maxiter=100,
-                          auxYlist=CCLEdataset$auxYlist, 
-                          auxXlist=CCLEdataset$auxXlist) -> TwosteptransRes
+           X=CCLEdataset_trainingtest[[1]]$Xtraining, 
+           B=NULL, L=NULL,eta=1,
+           lamseq_w = lamseq_w,
+           lamseq_delta=lam_delta,
+           tol=1e-04,maxiter=100,
+           auxYlist=CCLEdataset$auxYlist, 
+           auxXlist=CCLEdataset$auxXlist) -> TwosteptransRes
 
 dtwostep <- svd(matrix(TwosteptransRes$B[-1,],p,q))$d # corresponding singular value
 predTwostep <- cbind(1,CCLEdataset_trainingtest[[1]]$Xtest) %*% TwosteptransRes$B
@@ -101,15 +102,15 @@ Twosteperr <- mean( (predTwostep-CCLEdataset_trainingtest[[1]]$Ytest)^2 ,na.rm=T
 cl <- makeCluster(3)
 registerDoParallel(cl) # for fsd, msd
 MSDtrans(Y=CCLEdataset_trainingtest[[1]]$Ytraining, 
-                     X=CCLEdataset_trainingtest[[1]]$Xtraining, 
-                     B=NULL, L=NULL,eta=1,
-                     lamseq_w = lamseq_w,
-                     lamseq_delta=lam_delta,
-                     tol=1e-04,maxiter=100,
-                     auxYlist=CCLEdataset$auxYlist, 
-                     auxXlist=CCLEdataset$auxXlist,
-                     nfold=5,nfold_choiceforC=3,
-                     nfold_selectionstep_pe=3,
+         X=CCLEdataset_trainingtest[[1]]$Xtraining, 
+         B=NULL, L=NULL,eta=1,
+         lamseq_w = lamseq_w,
+         lamseq_delta=lam_delta,
+         tol=1e-04,maxiter=100,
+         auxYlist=CCLEdataset$auxYlist, 
+         auxXlist=CCLEdataset$auxXlist,
+         nfold=5,nfold_choiceforC=3,
+         nfold_selectionstep_pe=3,
          C=c(0.001, 0.01,  0.05,  0.1)) -> MSDRes
 
 dMSD <- svd(matrix(MSDRes$B[-1,],p,q))$d # corresponding singular value
@@ -137,25 +138,25 @@ stopCluster(cl)
 stopImplicitCluster()
 
 ### Running FSD-Trans-SCAD
-lamseq_w_SCAD <-  c(0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.6, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5,3,3.5)
-lamseq_delta_SCAD <- c(lamseq_w, 5, 7, 10, 20, 50, 70, 100, 200, 500)
+lamseq_w_SCAD <-  c(0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.6, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5)
+lamseq_delta_SCAD <- c(lamseq_w_SCAD,3)
 sourceindex <- FSDRes$detectedsources
 auxYlist_SCAD <- auxXlsit_SCAD <- list()
 for(ss in 1:length(sourceindex)){
   auxYlist_SCAD[[ss]] <- CCLEdataset$auxYlist[[sourceindex[ss]]]
   auxXlsit_SCAD[[ss]] <- CCLEdataset$auxXlist[[sourceindex[ss]]]
 }
-FSDSCADres <- BIC.TransSCAD(Y=CCLEdataset_trainingtest[[1]]$Ytraining, 
+FSDSCADres <- BIC.TransSCADinitcv(Y=CCLEdataset_trainingtest[[1]]$Ytraining, 
                             X=CCLEdataset_trainingtest[[1]]$Xtraining,
-                           auxYlist=auxYlist_SCAD,
-                           auxXlist=auxXlsit_SCAD,
-                           lamseq_w=lamseq_w_SCAD, 
-                           lamseq_delta=lamseq_delta_SCAD,
-                           eta=1, a=3.7,
-                           B=NULL,L=NULL,Delta=NULL,H=NULL,Pi=NULL,
-                           maxiter_inital=300, maxiter_biascorrection=300,
-                           tol_inital=1e-04, tol_biascorrection=1e-04,
-                           standardize=T)
+                            auxYlist=auxYlist_SCAD,
+                            auxXlist=auxXlsit_SCAD,
+                            lamseq_w=lamseq_w_SCAD, 
+                            lamseq_delta=lamseq_delta_SCAD,
+                            eta=1, a=3.7,
+                            B=NULL,L=NULL,Delta=NULL,H=NULL,Pi=NULL,
+                            maxiter_inital=300, maxiter_biascorrection=300,
+                            tol_inital=1e-04, tol_biascorrection=1e-04,
+                            standardize=T)
 
 dFSDSCAD <- svd(matrix(FSDSCADres$B[-1,],p,q))$d # corresponding singular value
 predFSDSCAD <- cbind(1,CCLEdataset_trainingtest[[1]]$Xtest) %*% FSDSCADres$B
@@ -185,8 +186,8 @@ q <- ncol(CCLEdataset_trainingtest[[1]]$Ytrainin)
 cl <- makeCluster(3)
 registerDoParallel(cl) # for fsd, msd
 
-lamseq_w_SCAD <-  c(0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.6, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5,3,3.5)
-lamseq_delta_SCAD <- c(lamseq_w, 5, 7, 10, 20, 50, 70, 100, 200, 500)
+lamseq_w_SCAD <-  c(0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.6, 0.8, 0.9, 1, 1.2, 1.5, 2, 2.5)
+lamseq_delta_SCAD <- c(lamseq_w_SCAD,3)
 for(i in 1:nrep){
   cv.nuclear(Y=CCLEdataset_trainingtest[[i]]$Ytraining, 
              X=CCLEdataset_trainingtest[[i]]$Xtraining, 
@@ -265,8 +266,8 @@ for(i in 1:nrep){
       auxYlist_SCAD[[ss]] <- CCLEdataset$auxYlist[[sourceindex[ss]]]
       auxXlist_SCAD[[ss]] <- CCLEdataset$auxXlist[[sourceindex[ss]]]
     }
-    FSDSCADres <- BIC.TransSCAD(Y=CCLEdataset_trainingtest[[1]]$Ytraining, 
-                                X=CCLEdataset_trainingtest[[1]]$Xtraining,
+    FSDSCADres <-BIC.TransSCADinitcv(Y=CCLEdataset_trainingtest[[i]]$Ytraining, 
+                                X=CCLEdataset_trainingtest[[i]]$Xtraining,
                                 auxYlist=auxYlist_SCAD,
                                 auxXlist=auxXlist_SCAD,
                                 lamseq_w=lamseq_w_SCAD, 
@@ -293,8 +294,9 @@ for(i in 1:nrep){
   Blist[[i]]  <- Blist_i # save Bhat 
   
   ranklist_i <- unlist(lapply(Blist_i, function(x){
-    sum(svd(matrix(x[-1,],p,q))$d > 1e-02)
+    sum(svd(matrix(x[-1,],p,q))$d > 1e-03)
   }))
+  ranklist_i[2] <- sum(svd(Blist_i[[2]])$d > 0.005)
   names(ranklist_i) <- c("NR", "Pooled-NR", "[K]-Trans", "MSD-Trans", "FSD-Trans", "FSD-Trans-SCAD")
   ranklist[[i]] <- ranklist_i
   
@@ -314,5 +316,5 @@ apply(do.call('rbind',ranklist),2,sd)
 
 #### Wilcoxon singed rank tests
 FSDvsNR <- wilcox.test(do.call('rbind',errorlist)[,5],
-            do.call('rbind',errorlist)[,1], paired = TRUE, alternative = "two.sided")
+                       do.call('rbind',errorlist)[,1], paired = TRUE, alternative = "two.sided")
 FSDvsNR$p.value
