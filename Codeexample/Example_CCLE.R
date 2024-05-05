@@ -266,7 +266,7 @@ for(i in 1:nrep){
       auxYlist_SCAD[[ss]] <- CCLEdataset$auxYlist[[sourceindex[ss]]]
       auxXlist_SCAD[[ss]] <- CCLEdataset$auxXlist[[sourceindex[ss]]]
     }
-    FSDSCADres <-BIC.TransSCADinitcv(Y=CCLEdataset_trainingtest[[i]]$Ytraining, 
+    FSDSCADres <-BIC.TransSCAD(Y=CCLEdataset_trainingtest[[i]]$Ytraining, 
                                 X=CCLEdataset_trainingtest[[i]]$Xtraining,
                                 auxYlist=auxYlist_SCAD,
                                 auxXlist=auxXlist_SCAD,
