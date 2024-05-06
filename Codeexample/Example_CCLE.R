@@ -296,7 +296,6 @@ for(i in 1:nrep){
   ranklist_i <- unlist(lapply(Blist_i, function(x){
     sum(svd(matrix(x[-1,],p,q))$d > 1e-03)
   }))
-  ranklist_i[2] <- sum(svd(Blist_i[[2]])$d > 0.005)
   names(ranklist_i) <- c("NR", "Pooled-NR", "[K]-Trans", "MSD-Trans", "FSD-Trans", "FSD-Trans-SCAD")
   ranklist[[i]] <- ranklist_i
   
